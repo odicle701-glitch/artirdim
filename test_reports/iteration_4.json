@@ -1,0 +1,75 @@
+{
+  "summary": "Frontend-only e2e verification of Blade -> Inertia+Vue 3 conversion on https://laravel-refresh-1.preview.emergentagent.com. All converted routes render as Vue (data-v-app present, no Inertia 404, no pageerrors). Public: /, /browse/auctions, /browse/live, /browse/explore, /contact, /corporate (Hakkımızda), /privacy-policy all 200 OK. Home client-side search filters card count (24 -> 12 for 'vintage'); the 4 sort buttons (Popüler / Bitmek Üzere / Yeni / Fiyat) are present and clickable. Auth: /login, /register (3-step wizard), /forgot-password render with hero right panel; register buyer-role -> Adım 2/2 (password step), seller-role -> Adım 2/3 (Satıcı Doğrulama: company/tax/IBAN/id document) -> continues to password step. Login flow: buyer@test.com/password redirects to /dashboard (Inertia Vue, title 'Panelim', shows role-based sidebar HESABIM section, header search/theme/notif/logout/balance testids all present); seller@test.com/password authenticates successfully (SATICI PANELİ sidebar visible). Authenticated Inertia pages verified: /dashboard, /my-bids, /favorites, /orders, /notifications, /support, /support/create — all vueRoot=1, no pageerrors, no console errors (except pre-existing 403 image noise). Theme toggle (data-testid=theme-toggle) flips html[data-bs-theme] dark<->light and persists across SPA navigation. Support create validation: empty submit shows inline pf-error messages ('subject/category/body alanı zorunludur') on the correct fields; filling valid data (subject + category + priority + body>10) creates ticket and SPA-navigates to /support/{id}.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Support create redirect", "issue": "Review request expected redirect to /support (list) with a success flash after ticket creation. Actual behaviour redirects directly to /support/{id} (the new ticket detail page). No visible flash/toast on that page. Minor UX deviation — not blocking.", "affected_selectors": [".toast", ".alert-success"]}
+    ],
+    "design_issues": [
+      {"screen": "Homepage / listing pages", "issues": ["~40 console 403 errors per navigation for seed image URLs (image-fallback.js swaps placeholder correctly). Pre-existing from iteration 1 / 2 — not a conversion regression."]}
+    ]
+  },
+  "detailed_results": {
+    "public_pages": {
+      "/": {"status": 200, "vueRoot": 1, "auctionLinks": 24, "searchTestId": true, "themeToggle": true, "headerSearch": true, "pageerrors": 0},
+      "/browse/auctions": {"status": 200, "vueRoot": 1, "pageerrors": 0},
+      "/browse/live": {"status": 200, "vueRoot": 1, "pageerrors": 0},
+      "/browse/explore": {"status": 200, "vueRoot": 1, "pageerrors": 0},
+      "/contact": {"status": 200, "vueRoot": 1, "pageerrors": 0},
+      "/corporate": {"status": 200, "title": "Hakkımızda", "vueRoot": 1, "pageerrors": 0},
+      "/privacy-policy": {"status": 200, "title": "Gizlilik Politikası", "vueRoot": 1, "pageerrors": 0}
+    },
+    "note_review_request_typos": "Review request listed '/corporta' and '/gizlilik-politikasi' — actual Ziggy routes are 'corporate' -> /corporate and 'privacy' -> /privacy-policy. Both work correctly; the request text just had wrong paths.",
+    "home_interactions": {
+      "search_input_filters": "24 -> 12 auction links when typing 'vintage'",
+      "sort_buttons_present": ["Popüler", "Bitmek Üzere", "Yeni", "Fiyat"],
+      "sort_yeni_click": "works, no errors"
+    },
+    "register_wizard": {
+      "step1_fields_present": {"name": true, "username": true, "email": true, "phone": true, "step1_next": true, "role_cards": 2},
+      "buyer_role_step2": "Adım 2 / 2 — password + password-confirm + terms + Kayıt Ol",
+      "seller_role_step2": "Adım 2 / 3 — Satıcı Doğrulama (Şirket Adı opsiyonel, Vergi Numarası, IBAN, Kimlik Belgesi file input)"
+    },
+    "buyer_login": {
+      "post_login_url": "/dashboard",
+      "title": "artirdim | Panelim",
+      "sidebar_testids_visible": ["sidebar-messages", "sidebar-buyer-orders"],
+      "header_testids": {"header-search-input": true, "theme-toggle": true, "header-notif-toggle": true, "header-logout": true},
+      "dashboard_stats_visible": "5 AKTİF TEKLİF / 2 FAVORİ / 0 KAZANILAN / 0₺ BAKİYE"
+    },
+    "authenticated_pages": {
+      "/dashboard": "ok",
+      "/my-bids": "ok — 'Henüz teklif vermedin' empty state",
+      "/favorites": "ok — 'Favori listen boş' empty state",
+      "/orders": "ok — 'Henüz siparişin yok' empty state",
+      "/notifications": "ok — 'Henüz bildiriminiz yok' (notif-read-all button hidden because 0 notifications, expected)",
+      "/support": "ok — FAQ accordions + 'Henüz destek talebiniz yok'",
+      "/support/create": "ok — subject/category/priority/body/submit all present"
+    },
+    "theme_toggle": {"before": "dark", "after_click": "light", "persisted_after_SPA_nav": "light", "works": true},
+    "support_validation": {
+      "empty_submit_errors": ["subject alanı zorunludur.", "category alanı zorunludur.", "body alanı zorunludur."],
+      "valid_submit_result": "redirected to /support/1 (new ticket show), title 'Talep #1', conversation shows submitted body"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix review-request path typos in future task docs: use /corporate (not /corporta) and /privacy-policy (not /gizlilik-politikasi). Routes/pages themselves work fine.",
+    "(Optional) After support ticket creation, redirect to /support (list) with flash 'Talep oluşturuldu' instead of jumping directly to /support/{id} — matches the behaviour described in the review request. Current behaviour is arguably better UX; either is acceptable."
+  ],
+  "critical_code_review_comments": [
+    "Inertia + Vue mount is clean: every converted page has exactly one [data-v-app] root, no duplicated app boots, no leftover data-page attribute after hydration.",
+    "AppLayout correctly renders role-based sidebar: buyer sees HESABIM section (Dashboard/Tekliflerim/Siparişlerim/Favoriler/Bildirimler/Destek), seller sees SATICI PANELİ (Panel/İlanlarım/Canlı Yayın/Satışlarım/Destek).",
+    "Theme toggle uses localStorage['theme'] preload script in <head> so no FOUC on navigation — good.",
+    "Support form uses .pf-error inline error rendering (per-field) driven by Inertia validation payload — matches original Blade behaviour."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend only)", "frontend": "98% (all critical Inertia conversion scenarios pass; one minor UX deviation on support redirect)"},
+  "test_credentials": "buyer@test.com / password, seller@test.com / password (from /app/memory/test_credentials.md) — both verified this run",
+  "seed_data_creation": "Created 1 support ticket #1 as buyer@test.com (subject 'TEST konu başlığı', body 'Bu bir test açıklamasıdır. Karakter sayısı yeterli.') — safe TEST_ prefix in body could be added on future runs.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Blade->Inertia+Vue conversion is functionally green. Key testids used: login-email/-password/-submit, register-name/-username/-email/-phone/-step1-next/-password/-password-confirm/-terms, index-search-input, theme-toggle, header-search-input/-notif-toggle/-logout, sidebar-messages/-buyer-orders, support-subject/-category/-priority/-body/-submit. Ziggy route names: corporate -> /corporate, privacy -> /privacy-policy (review request had typos). Buyer dashboard renders 'Panelim' with 5 AKTİF TEKLİF / 2 FAVORİ badges from seed data. New support ticket #1 was created during this run.",
+  "rca of the issue": "n/a — no bugs blocking. Only a minor UX deviation on support-create redirect (goes to /support/{id} instead of /support+flash)."
+}

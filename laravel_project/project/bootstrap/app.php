@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckMaintenanceMode;
 use App\Http\Middleware\EnsureUserIsVerified;
+use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -20,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
 
         $middleware->append(CheckMaintenanceMode::class);
+
+        $middleware->web(append: [
+            HandleInertiaRequests::class,
+        ]);
 
         $middleware->alias([
             'verified.account' => EnsureUserIsVerified::class,

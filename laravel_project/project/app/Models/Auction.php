@@ -79,6 +79,26 @@ class Auction extends Model implements HasMedia
     public function isEnding(): bool  { return $this->isActive() && $this->ends_at->diffInHours() < 24; }
     public function bidCount(): int   { return $this->bids()->count(); }
 
+    /** Frontend (Inertia/Vue) kart bileşeni için serialize edilmiş veri */
+    public function toCard(): array
+    {
+        return [
+            'id'             => $this->id,
+            'slug'           => $this->slug,
+            'title'          => $this->title,
+            'cover_url'      => $this->coverUrl(),
+            'is_active'      => $this->isActive(),
+            'status'         => $this->status,
+            'display_price'  => $this->displayPrice(),
+            'category_name'  => $this->category?->name,
+            'bid_count'      => $this->bids_count ?? $this->bidCount(),
+            'location'       => $this->location ? \Illuminate\Support\Str::limit($this->location, 18) : null,
+            'time_left'      => $this->timeLeft(),
+            'ends_at'        => $this->ends_at?->timestamp,
+            'show_url'       => route('auctions.show', $this->slug),
+        ];
+    }
+
     /** Yayın/etkileşim tamamen kapandı mı? (socket & polling durdurulur) */
     public function hasFinished(): bool
     {

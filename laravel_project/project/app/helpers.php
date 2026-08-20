@@ -48,3 +48,51 @@ if (!function_exists('story_ring_style')) {
         return 'background: conic-gradient(from -90deg, ' . implode(', ', $stops) . ');';
     }
 }
+
+if (!function_exists('story_bar_data')) {
+    /**
+     * Story-bar (Inertia/Vue) için serialize edilmiş hikaye verisi döndürür.
+     * Blade'deki partials/story-bar mantığının birebir karşılığı.
+     */
+    function story_bar_data(): array
+    {
+        \App\Models\Story::pruneExpired();
+
+        $storyUsers = \App\Models\User::whereHas('stories', fn ($q) => $q->where('expires_at', '>', now()))
+            ->with(['stories' => fn ($q) => $q->where('expires_at', '>', now())->orderBy('id')])
+            ->take(25)->get();
+
+        if (auth()->check()) {
+            $me = $storyUsers->firstWhere('id', auth()->id());
+            if ($me) {
+                $storyUsers = $storyUsers->reject(fn ($u) => $u->id === auth()->id())->prepend($me)->values();
+            }
+        }
+
+        return $storyUsers->map(function ($su) {
+            $ids = $su->stories->pluck('id')->values();
+            return [
+                'id'          => $su->id,
+                'name'        => $su->name,
+                'name_short'  => \Illuminate\Support\Str::limit($su->name, 10),
+                'avatar'      => $su->profile_img,
+                'story_ids'   => $ids,
+                'ring_style'  => story_ring_style($su->stories->count()),
+                'ring_unseen' => story_ring_style($su->stories->count()),
+                'ring_seen'   => story_ring_style($su->stories->count(), true),
+                'payload'     => [
+                    'name'    => $su->id === auth()->id() ? 'Hikayen' : $su->name,
+                    'avatar'  => $su->profile_img,
+                    'isOwner' => auth()->id() === $su->id,
+                    'items'   => $su->stories->map(fn ($st) => [
+                        'id'      => $st->id,
+                        'type'    => $st->media_type,
+                        'url'     => $st->url(),
+                        'caption' => $st->caption,
+                    ])->values(),
+                ],
+            ];
+        })->toArray();
+    }
+}
+

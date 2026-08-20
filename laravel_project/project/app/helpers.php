@@ -49,6 +49,24 @@ if (!function_exists('story_ring_style')) {
     }
 }
 
+
+if (!function_exists('bid_row')) {
+    /** Teklif satırı (dashboard / my-bids) için serialize */
+    function bid_row($bid): array
+    {
+        $a = $bid->auction;
+        return [
+            'id'          => $bid->id,
+            'title'       => \Illuminate\Support\Str::limit($a?->title ?? 'İlan silinmiş', 40),
+            'cover_url'   => $a?->coverUrl() ?? asset('assets/media/placeholder.svg'),
+            'show_url'    => $a ? route('auctions.show', $a->slug) : '#',
+            'amount'      => number_format($bid->amount, 0, ',', '.') . ' ₺',
+            'status'      => $a?->status,
+            'created_at'  => $bid->created_at->diffForHumans(),
+        ];
+    }
+}
+
 if (!function_exists('story_bar_data')) {
     /**
      * Story-bar (Inertia/Vue) için serialize edilmiş hikaye verisi döndürür.

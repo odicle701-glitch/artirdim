@@ -128,22 +128,57 @@ Route::middleware(['auth', 'verified.account'])->group(function () {
         $u = auth()->user();
         if ($u->isAdmin())  return redirect()->route('admin.dashboard');
         if ($u->isSeller()) return redirect()->route('seller.dashboard');
-        return view('dashboard');
+
+        $myBids = $u->bids()->with(['auction.cover', 'auction.category'])->latest()->take(6)->get();
+        $watchItems = $u->watchlist()->with('cover')->latest()->take(4)->get();
+
+        return \Inertia\Inertia::render('Dashboard', [
+            'user' => ['name' => $u->name],
+            'stats' => [
+                'balance'      => (float) ($u->balance ?? 0),
+                'active_bids'  => $u->bids()->whereHas('auction', fn ($q) => $q->where('status', 'active'))->distinct('auction_id')->count('auction_id'),
+                'fav_count'    => $u->watchlist()->count(),
+                'won_count'    => $u->purchases()->count(),
+            ],
+            'myBids'     => $myBids->map(fn ($b) => bid_row($b))->values(),
+            'watchItems' => $watchItems->map(fn ($w) => [
+                'title' => \Illuminate\Support\Str::limit($w->title, 28),
+                'cover_url' => $w->coverUrl(),
+                'display_price' => $w->displayPrice(),
+                'show_url' => route('auctions.show', $w->slug),
+            ])->values(),
+        ]);
     })->name('dashboard');
 
-    /*
-    | Alıcı: Tekliflerim & Favoriler
-    */
     Route::get('/my-bids', function () {
         $bids = auth()->user()->bids()
             ->with(['auction.cover', 'auction.category'])
             ->latest()->paginate(20);
-        return view('buyer.my-bids', compact('bids'));
+        return \Inertia\Inertia::render('Buyer/MyBids', [
+            'bids' => [
+                'data'  => collect($bids->items())->map(fn ($b) => bid_row($b))->values(),
+                'links' => $bids->linkCollection()->toArray(),
+                'has_pages' => $bids->hasPages(),
+                'total' => $bids->total(),
+            ],
+        ]);
     })->name('my-bids');
 
     Route::get('/favorites', function () {
         $items = auth()->user()->watchlist()->with('cover')->latest()->paginate(20);
-        return view('buyer.favorites', compact('items'));
+        return \Inertia\Inertia::render('Buyer/Favorites', [
+            'items' => [
+                'data'  => collect($items->items())->map(fn ($w) => [
+                    'title' => \Illuminate\Support\Str::limit($w->title, 32),
+                    'cover_url' => $w->coverUrl(),
+                    'display_price' => $w->displayPrice(),
+                    'show_url' => route('auctions.show', $w->slug),
+                ])->values(),
+                'links' => $items->linkCollection()->toArray(),
+                'has_pages' => $items->hasPages(),
+                'total' => $items->total(),
+            ],
+        ]);
     })->name('favorites');
 
     /*

@@ -15,6 +15,23 @@
 
 **Legend:** `[ ]` yapılmadı · `[x]` tamam · `[~]` devam ediyor
 
+> ## ✅ TAMAMLANAN (son oturum)
+> - **GRUP 0 — Altyapı: TAMAM** → Inertia + Vue 3 + Ziggy kuruldu, `HandleInertiaRequests` middleware, root `app.blade.php`, `resources/js/app.js`, `AppLayout.vue` (header+sidebar+footer), `AuthLayout.vue`, `AuctionCard.vue`, `StoryBar.vue`, `Pagination.vue`, `useClock.js`. KT (Metronic) bileşenleri her Inertia gezinmesinde yeniden başlatılıyor.
+> - **GRUP 1 — Public: TAMAM** → Index, Browse/Auctions, Browse/Live, Browse/Explore, Contact, Corporate, Privacy. Controller'lar `Inertia::render`'a çevrildi (HomeController, BrowseController, PageController).
+> - **GRUP 2 — Auth: TAMAM** → Login, Register (3-adım wizard), ForgotPassword, ResetPassword, ConfirmPassword, VerifyEmail, PendingApproval. Auth controller'ları + `EnsureUserIsVerified` middleware + web.php verify-email route Inertia'ya çevrildi. Login akışı test edildi (302 → dashboard ✅).
+> - **GRUP 4 — Alıcı: KISMEN (5/6)** → Dashboard, Buyer/MyBids, Buyer/Favorites, Buyer/Orders/Index, Buyer/Orders/Show TAMAM (+ OrderProgress, OrderTimeline, ReviewForm bileşenleri). Controller/route'lar Inertia'ya çevrildi, curl ile component doğrulandı. **KALAN: messages/index** (harici `messages-index.js` polling içerdiğinden sonraki oturuma bırakıldı).
+>
+> ### 🔑 ÖNEMLİ: KARMA MOD (Mixed mode) çalışıyor
+> Eski `resources/views/layouts/app.blade.php` **SİLİNMEDİ**. Henüz çevrilmemiş sayfalar (GRUP 3-7) hâlâ eski Blade layout ile sorunsuz render ediliyor. Yani site şu an %100 çalışır durumda. Bir grubu bitirince ilgili controller'ı `Inertia::render`'a çevir; gerisi otomatik.
+>
+> ### ▶️ SONRAKİ OTURUM NASIL DEVAM EDER
+> 1. `cd /app/laravel_project/project`
+> 2. İlgili blade + controller + route üçlüsünü aç (tablodaki eşleme hazır)
+> 3. `resources/js/Pages/...vue` oluştur (`layout: AppLayout` pattern'i — bkz. Index.vue)
+> 4. Controller'da `return view(...)` → `return Inertia::render(...)`, tüm compact/with verilerini props yap
+> 5. `npm run build` → `sudo supervisorctl restart laravel` → test → commit
+> 6. Auction listeleri için `\$auction->toCard()` + `<AuctionCard>` kullan (hazır)
+
 ---
 
 ## 🟦 GRUP 0 — Altyapı (ÖNCE bu bitmeli)
@@ -138,4 +155,4 @@
 - `public/assets/js/custom/*` içindeki mevcut JS davranışları component'lere taşınacak, silinmeyecek.
 
 ## ✅ Genel İlerleme
-- [ ] GRUP 0 · [ ] GRUP 1 · [ ] GRUP 2 · [ ] GRUP 3 · [ ] GRUP 4 · [ ] GRUP 5 · [ ] GRUP 6 · [ ] GRUP 7
+- [x] GRUP 0 · [x] GRUP 1 · [x] GRUP 2 · [ ] GRUP 3 · [~] GRUP 4 (5/6, messages kaldı) · [ ] GRUP 5 · [ ] GRUP 6 · [ ] GRUP 7

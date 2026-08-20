@@ -20,6 +20,7 @@
 > - **GRUP 1 — Public: TAMAM** → Index, Browse/Auctions, Browse/Live, Browse/Explore, Contact, Corporate, Privacy. Controller'lar `Inertia::render`'a çevrildi (HomeController, BrowseController, PageController).
 > - **GRUP 2 — Auth: TAMAM** → Login, Register (3-adım wizard), ForgotPassword, ResetPassword, ConfirmPassword, VerifyEmail, PendingApproval. Auth controller'ları + `EnsureUserIsVerified` middleware + web.php verify-email route Inertia'ya çevrildi. Login akışı test edildi (302 → dashboard ✅).
 > - **GRUP 4 — Alıcı: KISMEN (5/6)** → Dashboard, Buyer/MyBids, Buyer/Favorites, Buyer/Orders/Index, Buyer/Orders/Show TAMAM (+ OrderProgress, OrderTimeline, ReviewForm bileşenleri). Controller/route'lar Inertia'ya çevrildi, curl ile component doğrulandı. **KALAN: messages/index** (harici `messages-index.js` polling içerdiğinden sonraki oturuma bırakıldı).
+> - **GRUP 5 — Genel: KISMEN (4/8)** → General/Notifications, General/Support/{Index,Create,Show} TAMAM (+ FaqItem bileşeni). NotificationController + SupportController Inertia'ya çevrildi, curl ile doğrulandı. Support reply/notif read-all fetch+`router.reload` ile korundu. **KALAN: Balance (index/create/withdraw/show) — BalanceController henüz Inertia'ya çevrilmedi.**
 >
 > ### 🔑 ÖNEMLİ: KARMA MOD (Mixed mode) çalışıyor
 > Eski `resources/views/layouts/app.blade.php` **SİLİNMEDİ**. Henüz çevrilmemiş sayfalar (GRUP 3-7) hâlâ eski Blade layout ile sorunsuz render ediliyor. Yani site şu an %100 çalışır durumda. Bir grubu bitirince ilgili controller'ı `Inertia::render`'a çevir; gerisi otomatik.
@@ -155,4 +156,4 @@
 - `public/assets/js/custom/*` içindeki mevcut JS davranışları component'lere taşınacak, silinmeyecek.
 
 ## ✅ Genel İlerleme
-- [x] GRUP 0 · [x] GRUP 1 · [x] GRUP 2 · [ ] GRUP 3 · [~] GRUP 4 (5/6, messages kaldı) · [ ] GRUP 5 · [ ] GRUP 6 · [ ] GRUP 7
+- [x] GRUP 0 · [x] GRUP 1 · [x] GRUP 2 · [ ] GRUP 3 · [~] GRUP 4 (5/6) · [~] GRUP 5 (4/8) · [ ] GRUP 6 · [ ] GRUP 7

@@ -7,6 +7,8 @@ use App\Models\SupportMessage;
 use App\Models\SupportTicket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Inertia\Inertia;
 
 class SupportController extends Controller
 {
@@ -18,12 +20,30 @@ class SupportController extends Controller
             ->orderByDesc('updated_at')
             ->paginate(10);
 
-        return view('general.support.index', compact('tickets'));
+        return Inertia::render('General/Support/Index', [
+            'tickets' => [
+                'data' => collect($tickets->items())->map(fn ($t) => [
+                    'id'             => $t->id,
+                    'subject'        => Str::limit($t->subject, 50),
+                    'last_message'   => $t->lastMessage ? Str::limit($t->lastMessage->body, 60) : null,
+                    'category'       => ucfirst($t->category),
+                    'priority_label' => $t->priorityLabel(),
+                    'priority_badge' => $t->priorityBadge(),
+                    'status_label'   => $t->statusLabel(),
+                    'status_badge'   => $t->statusBadge(),
+                    'updated_at'     => $t->updated_at->diffForHumans(),
+                    'show_url'       => route('support.show', $t),
+                ])->values(),
+                'links'     => $tickets->linkCollection()->toArray(),
+                'has_pages' => $tickets->hasPages(),
+                'total'     => $tickets->total(),
+            ],
+        ]);
     }
 
     public function create()
     {
-        return view('general.support.create');
+        return Inertia::render('General/Support/Create');
     }
 
     public function store(Request $request)
@@ -62,7 +82,27 @@ class SupportController extends Controller
 
         $ticket->load('messages.user');
 
-        return view('general.support.show', compact('ticket'));
+        return Inertia::render('General/Support/Show', [
+            'ticket' => [
+                'id'             => $ticket->id,
+                'subject'        => $ticket->subject,
+                'priority_label' => $ticket->priorityLabel(),
+                'priority_badge' => $ticket->priorityBadge(),
+                'status_label'   => $ticket->statusLabel(),
+                'status_badge'   => $ticket->statusBadge(),
+                'is_open'        => $ticket->isOpen(),
+                'reply_url'      => route('support.reply', $ticket),
+                'close_url'      => route('support.close', $ticket),
+                'messages'       => $ticket->messages->map(fn ($m) => [
+                    'id'       => $m->id,
+                    'body'     => $m->body,
+                    'is_admin' => (bool) $m->is_admin,
+                    'author'   => $m->is_admin ? 'Destek Ekibi' : $m->user->name,
+                    'avatar'   => $m->user->avatar ? asset('storage/' . $m->user->avatar) : asset('assets/media/placeholder.svg'),
+                    'time'     => $m->created_at->format('d.m.Y H:i'),
+                ])->values(),
+            ],
+        ]);
     }
 
     public function reply(Request $request, SupportTicket $ticket)

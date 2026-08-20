@@ -1,0 +1,50 @@
+<?php
+
+use App\Models\Setting;
+
+if (!function_exists('setting')) {
+    function setting(string|array $key, mixed $default = null): mixed
+    {
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                Setting::set($k, $v);
+            }
+            return null;
+        }
+
+        return Setting::get($key, $default);
+    }
+}
+
+if (!function_exists('story_ring_style')) {
+    /**
+     * Instagram tarzı segmentli hikaye halkası için conic-gradient stili üretir.
+     * Segment sayısı = hikaye sayısı; segmentler arasında küçük boşluklar bulunur.
+     */
+    function story_ring_style(int $count, bool $seen = false): string
+    {
+        $count = max(1, $count);
+        $c1 = $seen ? '#4b5563' : '#155eef';
+        $c2 = $seen ? '#6b7280' : '#00d4ff';
+
+        if ($count === 1) {
+            return "background: linear-gradient(135deg, {$c1}, {$c2});";
+        }
+
+        $gap  = $count > 12 ? 3 : 8;               // segmentler arası boşluk (derece)
+        $each = 360 / $count;
+        $fill = max(4, $each - $gap);
+
+        $stops = [];
+        for ($i = 0; $i < $count; $i++) {
+            $start = round($i * $each, 2);
+            $end   = round($start + $fill, 2);
+            $next  = round(($i + 1) * $each, 2);
+            $color = $i % 2 === 0 ? $c1 : $c2;
+            $stops[] = "{$color} {$start}deg {$end}deg";
+            $stops[] = "transparent {$end}deg {$next}deg";
+        }
+
+        return 'background: conic-gradient(from -90deg, ' . implode(', ', $stops) . ');';
+    }
+}

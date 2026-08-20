@@ -1,0 +1,115 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# IDE and editors
+.idea/
+.vscode/
+
+# Dependencies
+node_modules/
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Testing
+/coverage
+
+# Next.js
+/.next/
+/out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Production builds
+/build
+dist/
+dist
+
+# Environment files (comprehensive coverage)
+
+*token.json*
+*credentials.json*
+
+# Logs and debug files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dump.rdb
+
+# System files
+.DS_Store
+*.pem
+
+# Python
+__pycache__/
+*pyc*
+venv/
+.venv/
+
+# Development tools
+chainlit.md
+.chainlit
+.ipynb_checkpoints/
+.ac
+
+# Deployment
+.vercel
+
+# Data and databases
+agenthub/agents/youtube/db
+
+# Archive files and large assets
+**/*.zip
+**/*.tar.gz
+**/*.tar
+**/*.tgz
+*.pack
+*.deb
+*.dylib
+
+# Build caches
+.cache/
+
+memory/test_credentials.md
+
+# Mobile development
+android-sdk/project.zip
+
+
+# ==============================================================
+# Laravel-specific (artirdim.com — /laravel_project/project)
+# ==============================================================
+laravel_project/project/vendor/
+laravel_project/project/node_modules/
+laravel_project/project/public/hot
+laravel_project/project/public/storage
+laravel_project/project/storage/*.key
+laravel_project/project/storage/logs/*.log
+laravel_project/project/storage/framework/cache/data/*
+laravel_project/project/storage/framework/sessions/*
+laravel_project/project/storage/framework/testing/*
+laravel_project/project/storage/framework/views/*.php
+laravel_project/project/bootstrap/cache/*.php
+laravel_project/project/.phpunit.result.cache
+laravel_project/project/.php-cs-fixer.cache
+laravel_project/project/.env
+laravel_project/project/.env.backup
+laravel_project/project/.env.production
+
+# Keep .gitkeep placeholder files inside storage/
+!laravel_project/project/storage/**/.gitkeep
+
+# Emergent varsayılan iskele — kullanılmıyor
+# (backend/frontend/tests/memory Emergent varsayılanları)
+.env
+.env.*
+*.env
+credentials.json
+*.key
+.credentials

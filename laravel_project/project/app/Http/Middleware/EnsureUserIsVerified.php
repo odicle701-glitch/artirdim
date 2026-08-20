@@ -35,7 +35,9 @@ class EnsureUserIsVerified
             }
 
             if ($profile->isPending()) {
-                return response()->view('auth.pending-approval');
+                return \Inertia\Inertia::render('Auth/PendingApproval', [
+                    'activeAuctions' => \App\Models\Auction::where('status', 'active')->count(),
+                ]);
             }
 
             if ($profile->isRejected()) {

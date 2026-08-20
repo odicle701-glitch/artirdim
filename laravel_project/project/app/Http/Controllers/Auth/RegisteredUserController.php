@@ -17,9 +17,11 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    public function create(): View
+    public function create(): \Inertia\Response
     {
-        return view('auth.register');
+        return \Inertia\Inertia::render('Auth/Register', [
+            'activeAuctions' => \App\Models\Auction::where('status', 'active')->count(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

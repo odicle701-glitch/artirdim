@@ -75,7 +75,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/email/verify', function () {
         return auth()->user()->hasVerifiedEmail()
             ? redirect()->route('dashboard')
-            : view('auth.verify-email');
+            : \Inertia\Inertia::render('Auth/VerifyEmail', [
+                'status' => session('status'),
+                'activeAuctions' => \App\Models\Auction::where('status', 'active')->count(),
+            ]);
     })->name('verification.notice');
 
     /*

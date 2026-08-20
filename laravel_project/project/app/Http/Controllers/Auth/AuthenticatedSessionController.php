@@ -16,9 +16,11 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): View
+    public function create(): \Inertia\Response
     {
-        return view('auth.login');
+        return \Inertia\Inertia::render('Auth/Login', [
+            'activeAuctions' => \App\Models\Auction::where('status', 'active')->count(),
+        ]);
     }
 
     /**

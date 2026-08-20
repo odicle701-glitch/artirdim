@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Auction;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class BrowseController extends Controller
 {
@@ -40,9 +41,23 @@ class BrowseController extends Controller
 
         $auctions = $query->paginate(12)->withQueryString();
 
-        return view('browse.auctions', compact('auctions', 'categories'));
+        return Inertia::render('Browse/Auctions', [
+            'auctions'   => [
+                'data'  => collect($auctions->items())->map->toCard()->values(),
+                'links' => $auctions->linkCollection()->toArray(),
+                'total' => $auctions->total(),
+                'has_pages' => $auctions->hasPages(),
+            ],
+            'categories' => $categories->map(fn ($c) => [
+                'slug' => $c->slug, 'name' => $c->name, 'auctions_count' => $c->auctions_count,
+            ])->values(),
+            'filters' => [
+                'q' => $request->q ?? '', 'category' => $request->category ?? '',
+                'status' => $request->status ?? '', 'sort' => $request->sort ?? 'bids',
+            ],
+            'now' => now()->format('d.m.Y H:i'),
+        ]);
     }
-
 
     public function live()
     {
@@ -54,7 +69,10 @@ class BrowseController extends Controller
             ->orderBy('ends_at')
             ->get();
 
-        return view('browse.live', compact('liveAuctions'));
+        return Inertia::render('Browse/Live', [
+            'liveAuctions' => $liveAuctions->map->toCard()->values(),
+            'now' => now()->format('d.m.Y H:i'),
+        ]);
     }
 
     public function explore()
@@ -66,16 +84,21 @@ class BrowseController extends Controller
             ->where('is_featured', true)
             ->where('status', 'active')
             ->where('ends_at', '>', now())
-            ->latest()
-            ->take(8)
-            ->get();
+            ->latest()->take(8)->get();
 
         $newAuctions = Auction::query()
             ->with(['category', 'cover'])
-            ->latest()
-            ->take(8)
-            ->get();
+            ->latest()->take(8)->get();
 
-        return view('browse.explore', compact('categories', 'featuredAuctions', 'newAuctions'));
+        return Inertia::render('Browse/Explore', [
+            'categories' => $categories->map(fn ($c) => [
+                'slug' => $c->slug, 'name' => $c->name,
+                'auctions_count' => $c->auctions_count, 'image_url' => $c->image_url,
+                'browse_url' => route('browse.auctions', ['category' => $c->slug]),
+            ])->values(),
+            'featuredAuctions' => $featuredAuctions->map->toCard()->values(),
+            'newAuctions'      => $newAuctions->map->toCard()->values(),
+            'now' => now()->format('d.m.Y H:i'),
+        ]);
     }
 }

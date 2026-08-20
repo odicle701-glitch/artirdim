@@ -6,22 +6,44 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Inertia;
 
 class PageController extends Controller
 {
     public function corporate()
     {
-        return view('corporta');
+        return Inertia::render('Corporate', [
+            'settings' => [
+                'site_name'        => setting('site_name'),
+                'site_description' => setting('site_description'),
+                'support_email'    => setting('support_email'),
+            ],
+        ]);
     }
 
     public function privacy_policy()
     {
-        return view('privay-policy');
+        return Inertia::render('Privacy', [
+            'privacyText' => setting('privacy_text'),
+            'settings' => [
+                'site_name'     => setting('site_name'),
+                'site_url'      => setting('site_url'),
+                'contact_email' => setting('contact_email'),
+            ],
+            'updatedAt' => date('d.m.Y'),
+        ]);
     }
 
     public function contact()
     {
-        return view('contact');
+        return Inertia::render('Contact', [
+            'settings' => [
+                'site_name'     => setting('site_name'),
+                'site_url'      => setting('site_url'),
+                'contact_email' => setting('contact_email'),
+                'support_email' => setting('support_email'),
+            ],
+        ]);
     }
 
     public function contactSend(Request $request)
@@ -56,7 +78,7 @@ class PageController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'subject' => $subjectLabels[$validated['subject']],
-                'userMessage' => $validated['message'],   // ← message → userMessage
+                'userMessage' => $validated['message'],
             ], function ($mail) use ($validated, $subjectLabels) {
                 $mail->to(config('mail.contact_address', 'destek@artirdim.com'))
                     ->replyTo($validated['email'], $validated['name'])
